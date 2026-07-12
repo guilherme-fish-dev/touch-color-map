@@ -20,7 +20,8 @@ import {
   saveState,
   loadState,
   bulkExclude,
-  bulkRestore
+  bulkRestore,
+  parseBulkExpression
 } from '../js/state.js';
 
 test('State Operations Test Suite', async (t) => {
@@ -132,6 +133,38 @@ test('State Operations Test Suite', async (t) => {
     assert.ok(!state.excludedItems.includes('F4'));
     assert.ok(!state.excludedItems.includes('F5'));
     assert.ok(state.excludedItems.includes('F3'));
+
+    // F10-12 range parsing resolves F10, F11, F12
+    const res1 = parseBulkExpression('F10-12');
+    assert.deepStrictEqual(res1, ['F10', 'F11', 'F12']);
+
+    // 10-F12 range parsing resolves F10, F11, F12
+    const res2 = parseBulkExpression('10-F12');
+    assert.deepStrictEqual(res2, ['F10', 'F11', 'F12']);
+
+    // Mixed prefixes (F3-G5) throw an error
+    assert.throws(() => {
+      parseBulkExpression('F3-G5');
+    }, /Mixed prefixes are not supported/);
+
+    // Limit (> 1000 items) throws an error
+    assert.throws(() => {
+      parseBulkExpression('F1-1002');
+    }, /Bulk range size cannot exceed 1000 items/);
+
+    // Verify bulkExclude and bulkRestore handle parsing errors gracefully
+    assert.doesNotThrow(() => {
+      bulkExclude('F3-G5');
+    });
+    assert.doesNotThrow(() => {
+      bulkExclude('F1-1002');
+    });
+    assert.doesNotThrow(() => {
+      bulkRestore('F3-G5');
+    });
+    assert.doesNotThrow(() => {
+      bulkRestore('F1-1002');
+    });
   });
 
   await t.test('Defensive Properties Initialization', () => {

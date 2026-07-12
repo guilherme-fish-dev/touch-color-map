@@ -148,6 +148,16 @@ export function parseBulkExpression(expression) {
       const startNum = parseInt(rangeMatch[2], 10);
       const prefix2 = rangeMatch[3];
       const endNum = parseInt(rangeMatch[4], 10);
+
+      if (prefix1 && prefix2 && prefix1 !== prefix2) {
+        throw new Error('Mixed prefixes are not supported in ranges.');
+      }
+
+      const rangeSize = Math.abs(endNum - startNum) + 1;
+      if (rangeSize > 1000) {
+        throw new Error('Bulk range size cannot exceed 1000 items.');
+      }
+
       const prefix = prefix2 === '' ? prefix1 : prefix2;
       
       const start = Math.min(startNum, endNum);
@@ -163,17 +173,31 @@ export function parseBulkExpression(expression) {
 }
 
 export function bulkExclude(expression) {
-  const items = parseBulkExpression(expression);
-  for (const item of items) {
-    if (!state.excludedItems.includes(item)) {
-      state.excludedItems.push(item);
+  try {
+    const items = parseBulkExpression(expression);
+    for (const item of items) {
+      if (!state.excludedItems.includes(item)) {
+        state.excludedItems.push(item);
+      }
+    }
+    saveState();
+  } catch (error) {
+    console.error('Bulk exclude error:', error);
+    if (typeof window !== 'undefined' && window.alert) {
+      window.alert(error.message);
     }
   }
-  saveState();
 }
 
 export function bulkRestore(expression) {
-  const items = parseBulkExpression(expression);
-  state.excludedItems = state.excludedItems.filter(item => !items.includes(item));
-  saveState();
+  try {
+    const items = parseBulkExpression(expression);
+    state.excludedItems = state.excludedItems.filter(item => !items.includes(item));
+    saveState();
+  } catch (error) {
+    console.error('Bulk restore error:', error);
+    if (typeof window !== 'undefined' && window.alert) {
+      window.alert(error.message);
+    }
+  }
 }
