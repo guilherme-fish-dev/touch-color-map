@@ -101,11 +101,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      addRange({ prefix, start, end, symbol, color });
-      
-      // Reset prefix form only, keep color
-      document.getElementById('input-prefix').value = '';
-      refreshUI();
+      try {
+        addRange({ prefix, start, end, symbol, color });
+        
+        // Reset prefix form only, keep color
+        document.getElementById('input-prefix').value = '';
+        refreshUI();
+      } catch (err) {
+        alert(err.message);
+      }
     });
   }
 

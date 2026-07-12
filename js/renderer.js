@@ -141,7 +141,6 @@ export function renderPrintSheet(onToggleItem) {
     grid.className = 'grid-container';
     if (state.gridColumns > 0) {
       grid.classList.add(`grid-cols-${state.gridColumns}`);
-      grid.className += ` grid-cols-${state.gridColumns}`;
     }
 
     const items = getEffectiveItems(range);
@@ -151,7 +150,6 @@ export function renderPrintSheet(onToggleItem) {
       item.className = 'symbol-item';
       if (state.labelPosition === 'above') {
         item.classList.add('label-above');
-        item.className += ' label-above';
       }
       item.title = `Click to exclude ${escapeHTML(label)}`;
 

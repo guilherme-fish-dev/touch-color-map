@@ -158,7 +158,7 @@ export function parseBulkExpression(expression) {
         throw new Error('Bulk range size cannot exceed 1000 items.');
       }
 
-      const prefix = prefix2 === '' ? prefix1 : prefix2;
+      const prefix = prefix2 || prefix1 || '';
       
       const start = Math.min(startNum, endNum);
       const end = Math.max(startNum, endNum);

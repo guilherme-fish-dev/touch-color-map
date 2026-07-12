@@ -30,82 +30,79 @@ globalThis.window = {
 globalThis.localStorage = globalThis.window.localStorage;
 
 // Mock DOM
+class MockDOMElement {
+  constructor(tagName) {
+    this.tagName = tagName;
+    this.children = [];
+    this._className = '';
+    this._innerHTML = '';
+    this.innerText = '';
+    this.value = '';
+    this.style = {};
+    this.listeners = {};
+    this.classList = {
+      _parent: this,
+      add(cls) {
+        const classes = this._parent._className ? this._parent._className.trim().split(/\s+/).filter(Boolean) : [];
+        if (!classes.includes(cls)) {
+          classes.push(cls);
+          this._parent._className = classes.join(' ');
+        }
+      },
+      remove(cls) {
+        const classes = this._parent._className ? this._parent._className.trim().split(/\s+/).filter(Boolean) : [];
+        const idx = classes.indexOf(cls);
+        if (idx > -1) {
+          classes.splice(idx, 1);
+          this._parent._className = classes.join(' ');
+        }
+      },
+      contains(cls) {
+        const classes = this._parent._className ? this._parent._className.trim().split(/\s+/).filter(Boolean) : [];
+        return classes.includes(cls);
+      }
+    };
+  }
+  get className() {
+    return this._className;
+  }
+  set className(val) {
+    this._className = val;
+  }
+  get innerHTML() {
+    return this._innerHTML;
+  }
+  set innerHTML(val) {
+    this._innerHTML = val;
+    if (val === '') {
+      this.children = [];
+    }
+  }
+  appendChild(child) {
+    this.children.push(child);
+  }
+  addEventListener(event, cb) {
+    this.listeners[event] = cb;
+  }
+  querySelector(selector) {
+    this.queriedElements = this.queriedElements || {};
+    if (!this.queriedElements[selector]) {
+      this.queriedElements[selector] = new MockDOMElement('div');
+    }
+    return this.queriedElements[selector];
+  }
+}
+
 let elements = {};
 globalThis.document = {
   getElementById: (id) => {
     if (!elements[id]) {
-      const classList = {
-        classes: new Set(),
-        add: function(c) { this.classes.add(c); },
-        remove: function(c) { this.classes.delete(c); },
-        contains: function(c) { return this.classes.has(c); }
-      };
-      elements[id] = {
-        innerHTML: '',
-        innerText: '',
-        value: '',
-        className: '',
-        style: {},
-        children: [],
-        listeners: {},
-        classList: classList,
-        appendChild: function(child) {
-          this.children.push(child);
-        },
-        addEventListener: function(event, handler) {
-          this.listeners[event] = handler;
-        },
-        querySelector: function(selector) {
-          this.queriedElements = this.queriedElements || {};
-          if (!this.queriedElements[selector]) {
-            this.queriedElements[selector] = {
-              listeners: {},
-              addEventListener: function(event, cb) {
-                this.listeners[event] = cb;
-              }
-            };
-          }
-          return this.queriedElements[selector];
-        }
-      };
+      elements[id] = new MockDOMElement('div');
     }
     return elements[id];
   },
   createElement: (tag) => {
-    const classList = {
-      classes: new Set(),
-      add: function(c) { this.classes.add(c); },
-      remove: function(c) { this.classes.delete(c); },
-      contains: function(c) { return this.classes.has(c); }
-    };
-    return {
-      tagName: tag,
-      className: '',
-      style: {},
-      innerHTML: '',
-      innerText: '',
-      children: [],
-      listeners: {},
-      classList: classList,
-      appendChild: function(child) {
-        this.children.push(child);
-      },
-      addEventListener: function(event, cb) {
-        this.listeners[event] = cb;
-      },
-      querySelector: function(selector) {
-        this.queriedElements = this.queriedElements || {};
-        if (!this.queriedElements[selector]) {
-          this.queriedElements[selector] = {
-            listeners: {},
-            addEventListener: function(event, cb) {
-              this.listeners[event] = cb;
-            }
-          };
-        }
-        return this.queriedElements[selector];
-      }
-    };
+    return new MockDOMElement(tag);
   },
   addEventListener: (event, handler) => {
     if (!globalThis.document.listeners) globalThis.document.listeners = {};
@@ -421,7 +418,6 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     content = elements['sheet-content'];
     section = content.children[0];
     grid = section.children[1];
-    assert.ok(grid.className.includes('grid-cols-5'));
     assert.ok(grid.classList.contains('grid-cols-5'));
   });
 
@@ -456,7 +452,6 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     section = content.children[0];
     grid = section.children[1];
     item = grid.children[0];
-    assert.ok(item.className.includes('label-above'));
     assert.ok(item.classList.contains('label-above'));
   });
 
