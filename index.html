@@ -32,11 +32,11 @@
           <div class="form-row split">
             <div class="form-group">
               <label for="input-start">Start</label>
-              <input type="number" id="input-start" value="1" min="1" required>
+              <input type="number" id="input-start" value="1" min="0" required>
             </div>
             <div class="form-group">
               <label for="input-end">End</label>
-              <input type="number" id="input-end" value="10" min="1" required>
+              <input type="number" id="input-end" value="10" min="0" required>
             </div>
           </div>
           <div class="form-group">
@@ -91,6 +91,57 @@
         <div id="exclusions-log-list" class="exclusions-list">
           <!-- Excluded items tags rendered dynamically -->
         </div>
+        
+        <!-- Bulk Exclude Action Card -->
+        <div class="bulk-exclude-card" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-sidebar);">
+          <div class="form-group">
+            <label for="input-bulk-exclude">Bulk Exclude / Restore</label>
+            <input type="text" id="input-bulk-exclude" placeholder="e.g. C1-C10, H5" style="margin-bottom: 8px;">
+            <div class="button-group">
+              <button type="button" id="btn-bulk-exclude" class="btn btn-danger btn-small" style="font-size: 0.75rem; padding: 6px 12px;">Exclude</button>
+              <button type="button" id="btn-bulk-restore" class="btn btn-secondary btn-small" style="font-size: 0.75rem; padding: 6px 12px;">Restore</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page Info Panel -->
+      <section class="settings-section">
+        <h2>Page Info</h2>
+        <div class="form-group">
+          <label for="input-title">Page Title</label>
+          <input type="text" id="input-title" placeholder="e.g. My Tracker Sheet">
+        </div>
+        <div class="form-group">
+          <label for="input-subtitle">Page Subtitle</label>
+          <input type="text" id="input-subtitle" placeholder="e.g. Diamond Painting Map">
+        </div>
+        <div class="form-group">
+          <label for="input-footer">Page Footer</label>
+          <input type="text" id="input-footer" placeholder="e.g. Row 1 to 10">
+        </div>
+      </section>
+
+      <!-- Layout Config Panel -->
+      <section class="settings-section">
+        <h2>Layout Config</h2>
+        <div class="form-group">
+          <label for="select-columns">Grid Columns</label>
+          <select id="select-columns">
+            <option value="0">Auto-fit (Responsive)</option>
+            <option value="5">5 Columns</option>
+            <option value="8">8 Columns</option>
+            <option value="10">10 Columns</option>
+            <option value="12">12 Columns</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="select-label-position">Label Position</label>
+          <select id="select-label-position">
+            <option value="inside">Inside Shape</option>
+            <option value="above">Above Shape</option>
+          </select>
+        </div>
       </section>
 
       <!-- Global Settings Panel -->
@@ -127,9 +178,20 @@
       <div class="sheet-container">
         <!-- Represents the physical printed page -->
         <div id="print-sheet" class="print-page paper-a4">
+          <!-- Page Header (Rendered dynamically) -->
+          <header class="sheet-header" id="sheet-header">
+            <h1 id="sheet-title" class="sheet-title"></h1>
+            <p id="sheet-subtitle" class="sheet-subtitle"></p>
+          </header>
+
           <div id="sheet-content">
             <!-- Dynamically populated outline categories -->
           </div>
+
+          <!-- Page Footer -->
+          <footer class="sheet-footer" id="sheet-footer">
+            <p id="sheet-footer-text" class="sheet-footer-text"></p>
+          </footer>
         </div>
       </div>
     </main>

@@ -595,3 +595,98 @@ input[type="color"]::-webkit-color-swatch {
   }
 }
 
+/* ==========================================================================
+   Page Headers and Footers (Print Sheet)
+   ========================================================================== */
+.sheet-header {
+  display: none;
+  margin-bottom: 28px;
+  text-align: center;
+  border-bottom: 2px solid #cbd5e1;
+  padding-bottom: 12px;
+}
+
+.sheet-header.visible {
+  display: block;
+}
+
+.sheet-title {
+  font-family: var(--font-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.sheet-subtitle {
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  font-weight: 400;
+  color: #475569;
+}
+
+.sheet-footer {
+  display: none;
+  margin-top: 36px;
+  text-align: center;
+  border-top: 2px solid #cbd5e1;
+  padding-top: 12px;
+}
+
+.sheet-footer.visible {
+  display: block;
+}
+
+.sheet-footer-text {
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* ==========================================================================
+   Custom Grid Layout Column Utilities
+   ========================================================================== */
+.grid-container.grid-cols-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  flex-wrap: nowrap;
+}
+
+.grid-container.grid-cols-8 {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  flex-wrap: nowrap;
+}
+
+.grid-container.grid-cols-10 {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  flex-wrap: nowrap;
+}
+
+.grid-container.grid-cols-12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  flex-wrap: nowrap;
+}
+
+/* ==========================================================================
+   Label Position: Above layout
+   ========================================================================== */
+.symbol-item.label-above .symbol-shape,
+.label-above .symbol-item .symbol-shape {
+  flex-direction: column-reverse;
+}
+
+.symbol-item.label-above .symbol-label,
+.label-above .symbol-item .symbol-label {
+  position: static;
+  margin-bottom: 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid currentColor;
+  width: 100%;
+  text-align: center;
+  display: block;
+}
+
+
