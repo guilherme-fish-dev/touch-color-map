@@ -1,4 +1,4 @@
-import { state, addRange, loadState, saveState } from './js/state.js';
+import { state, addRange, loadState, saveState, bulkExclude, bulkRestore } from './js/state.js';
 import { renderColorPresets, renderActiveRanges, renderPrintSheet, renderExclusions } from './js/renderer.js';
 
 let selectedColor = '#6366f1';
@@ -20,6 +20,42 @@ function refreshUI() {
   const sheet = document.getElementById('print-sheet');
   if (sheet) {
     sheet.className = `print-page paper-${state.paperSize}`;
+  }
+
+  // Update inputs dynamically to match loaded/changed state
+  const inputTitle = document.getElementById('input-title');
+  if (inputTitle && document.activeElement !== inputTitle) {
+    inputTitle.value = state.title || '';
+  }
+
+  const inputSubtitle = document.getElementById('input-subtitle');
+  if (inputSubtitle && document.activeElement !== inputSubtitle) {
+    inputSubtitle.value = state.subtitle || '';
+  }
+
+  const inputFooter = document.getElementById('input-footer');
+  if (inputFooter && document.activeElement !== inputFooter) {
+    inputFooter.value = state.footer || '';
+  }
+
+  const selectColumns = document.getElementById('select-columns');
+  if (selectColumns) {
+    selectColumns.value = state.gridColumns;
+  }
+
+  const selectLabelPosition = document.getElementById('select-label-position');
+  if (selectLabelPosition) {
+    selectLabelPosition.value = state.labelPosition;
+  }
+
+  const paperSelect = document.getElementById('select-paper');
+  if (paperSelect) {
+    paperSelect.value = state.paperSize;
+  }
+
+  const scaleSlider = document.getElementById('range-scale');
+  if (scaleSlider) {
+    scaleSlider.value = state.symbolScale;
   }
 }
 
@@ -60,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const rangeSize = endNum - startNum + 1;
-      if (rangeSize > 300) {
-        alert('A single range rule cannot contain more than 300 items. Please split your range.');
+      if (rangeSize > 1000) {
+        alert('A single range rule cannot contain more than 1000 items. Please split your range.');
         return;
       }
 
@@ -82,10 +118,86 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Title edit handler
+  const inputTitle = document.getElementById('input-title');
+  if (inputTitle) {
+    inputTitle.addEventListener('input', (e) => {
+      state.title = e.target.value;
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Subtitle edit handler
+  const inputSubtitle = document.getElementById('input-subtitle');
+  if (inputSubtitle) {
+    inputSubtitle.addEventListener('input', (e) => {
+      state.subtitle = e.target.value;
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Footer edit handler
+  const inputFooter = document.getElementById('input-footer');
+  if (inputFooter) {
+    inputFooter.addEventListener('input', (e) => {
+      state.footer = e.target.value;
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Columns select handler
+  const selectColumns = document.getElementById('select-columns');
+  if (selectColumns) {
+    selectColumns.addEventListener('change', (e) => {
+      state.gridColumns = parseInt(e.target.value, 10);
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Label position handler
+  const selectLabelPosition = document.getElementById('select-label-position');
+  if (selectLabelPosition) {
+    selectLabelPosition.addEventListener('change', (e) => {
+      state.labelPosition = e.target.value;
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Bulk exclude button handler
+  const btnBulkExclude = document.getElementById('btn-bulk-exclude');
+  const inputBulkExclude = document.getElementById('input-bulk-exclude');
+  if (btnBulkExclude && inputBulkExclude) {
+    btnBulkExclude.addEventListener('click', () => {
+      const expr = inputBulkExclude.value.trim();
+      if (expr) {
+        bulkExclude(expr);
+        inputBulkExclude.value = '';
+        refreshUI();
+      }
+    });
+  }
+
+  // Bulk restore button handler
+  const btnBulkRestore = document.getElementById('btn-bulk-restore');
+  if (btnBulkRestore && inputBulkExclude) {
+    btnBulkRestore.addEventListener('click', () => {
+      const expr = inputBulkExclude.value.trim();
+      if (expr) {
+        bulkRestore(expr);
+        inputBulkExclude.value = '';
+        refreshUI();
+      }
+    });
+  }
+
   // Paper Select
   const paperSelect = document.getElementById('select-paper');
   if (paperSelect) {
-    paperSelect.value = state.paperSize;
     paperSelect.addEventListener('change', (e) => {
       state.paperSize = e.target.value;
       saveState();
@@ -96,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Symbol Scale slider
   const scaleSlider = document.getElementById('range-scale');
   if (scaleSlider) {
-    scaleSlider.value = state.symbolScale;
     scaleSlider.addEventListener('input', (e) => {
       state.symbolScale = parseFloat(e.target.value);
       saveState();
@@ -121,6 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (confirm('Are you sure you want to clear all configurations and exclusions?')) {
         state.ranges = [];
         state.excludedItems = [];
+        state.title = '';
+        state.subtitle = '';
+        state.footer = '';
+        state.labelPosition = 'inside';
+        state.gridColumns = 0;
         saveState();
         refreshUI();
       }

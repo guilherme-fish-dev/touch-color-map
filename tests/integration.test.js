@@ -243,14 +243,14 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     assert.strictEqual(alertCalled, false);
     assert.strictEqual(state.ranges.length, 1);
 
-    // Test validation for range size > 300
+    // Test validation for range size > 1000
     elements['input-start'] = { value: '1' };
-    elements['input-end'] = { value: '302' }; // 302 items (> 300)
+    elements['input-end'] = { value: '1002' }; // 1002 items (> 1000)
     alertCalled = false;
     alertMessage = '';
     formSubmit(mockEvent);
     assert.strictEqual(alertCalled, true);
-    assert.ok(alertMessage.includes('cannot contain more than 300 items'));
+    assert.ok(alertMessage.includes('cannot contain more than 1000 items'));
     // ranges length should still be 1
     assert.strictEqual(state.ranges.length, 1);
   });
@@ -362,5 +362,170 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     clickHandler();
     
     assert.strictEqual(state.excludedItems.length, 0);
+  });
+
+  await t.test('should render title, subtitle, and footer correctly in print sheet', () => {
+    elements = {};
+    resetState();
+    
+    // Set headers and footers in state
+    state.title = 'Hello Title';
+    state.subtitle = 'Hello Subtitle';
+    state.footer = 'Hello Footer';
+    
+    renderPrintSheet(() => {});
+    
+    assert.strictEqual(elements['sheet-title'].innerText, 'Hello Title');
+    assert.strictEqual(elements['sheet-subtitle'].innerText, 'Hello Subtitle');
+    assert.strictEqual(elements['sheet-footer-text'].innerText, 'Hello Footer');
+    
+    assert.ok(elements['sheet-header'].classList.contains('visible'));
+    assert.ok(elements['sheet-footer'].classList.contains('visible'));
+    
+    // Now check empty behavior
+    state.title = '';
+    state.subtitle = '';
+    state.footer = '';
+    
+    renderPrintSheet(() => {});
+    
+    assert.strictEqual(elements['sheet-header'].classList.contains('visible'), false);
+    assert.strictEqual(elements['sheet-footer'].classList.contains('visible'), false);
+  });
+
+  await t.test('should apply grid column classes dynamically in print sheet', () => {
+    elements = {};
+    resetState();
+    
+    state.ranges.push({
+      id: 'test-range-grid',
+      prefix: 'G',
+      start: 1,
+      end: 3,
+      symbol: 'circle',
+      color: '#ff0000'
+    });
+    
+    // Check auto-fit (gridColumns = 0)
+    state.gridColumns = 0;
+    renderPrintSheet(() => {});
+    
+    let content = elements['sheet-content'];
+    let section = content.children[0];
+    let grid = section.children[1];
+    assert.strictEqual(grid.className, 'grid-container');
+    
+    // Check columns mapping (gridColumns = 5)
+    state.gridColumns = 5;
+    renderPrintSheet(() => {});
+    content = elements['sheet-content'];
+    section = content.children[0];
+    grid = section.children[1];
+    assert.ok(grid.className.includes('grid-cols-5'));
+    assert.ok(grid.classList.contains('grid-cols-5'));
+  });
+
+  await t.test('should render label-above on symbol items in print sheet when selected', () => {
+    elements = {};
+    resetState();
+    
+    state.ranges.push({
+      id: 'test-range-label',
+      prefix: 'L',
+      start: 1,
+      end: 3,
+      symbol: 'circle',
+      color: '#ff0000'
+    });
+    
+    // When inside (default)
+    state.labelPosition = 'inside';
+    renderPrintSheet(() => {});
+    
+    let content = elements['sheet-content'];
+    let section = content.children[0];
+    let grid = section.children[1];
+    let item = grid.children[0];
+    assert.strictEqual(item.className, 'symbol-item');
+    assert.strictEqual(item.classList.contains('label-above'), false);
+    
+    // When above
+    state.labelPosition = 'above';
+    renderPrintSheet(() => {});
+    content = elements['sheet-content'];
+    section = content.children[0];
+    grid = section.children[1];
+    item = grid.children[0];
+    assert.ok(item.className.includes('label-above'));
+    assert.ok(item.classList.contains('label-above'));
+  });
+
+  await t.test('should hook up events and handle title edit in app.js', async () => {
+    elements = {};
+    resetState();
+    globalThis.document.listeners = {};
+    
+    await import('../app.js?t=' + Date.now() + '_title');
+    
+    const handler = globalThis.document.listeners['DOMContentLoaded'];
+    handler();
+    
+    const inputTitle = elements['input-title'];
+    assert.ok(inputTitle);
+    
+    const inputHandler = inputTitle.listeners['input'];
+    assert.ok(inputHandler);
+    
+    // Simulate typing
+    inputHandler({ target: { value: 'New Test Title' } });
+    
+    assert.strictEqual(state.title, 'New Test Title');
+  });
+
+  await t.test('should trigger bulk exclusion and bulk restoration on buttons click in app.js', async () => {
+    elements = {};
+    resetState();
+    globalThis.document.listeners = {};
+    
+    await import('../app.js?t=' + Date.now() + '_bulk');
+    
+    const handler = globalThis.document.listeners['DOMContentLoaded'];
+    handler();
+    
+    // Add a range to test bulk exclusion
+    state.ranges.push({
+      id: 'r-bulk',
+      prefix: 'B',
+      start: 1,
+      end: 10,
+      symbol: 'circle',
+      color: '#ff0000'
+    });
+    
+    const inputBulk = elements['input-bulk-exclude'];
+    const btnExclude = elements['btn-bulk-exclude'];
+    const btnRestore = elements['btn-bulk-restore'];
+    
+    assert.ok(inputBulk);
+    assert.ok(btnExclude);
+    assert.ok(btnRestore);
+    
+    // Exclude B2-B4
+    inputBulk.value = 'B2-B4';
+    const clickExclude = btnExclude.listeners['click'];
+    assert.ok(clickExclude);
+    clickExclude();
+    
+    assert.deepStrictEqual(state.excludedItems.sort(), ['B2', 'B3', 'B4']);
+    assert.strictEqual(inputBulk.value, ''); // should reset
+    
+    // Restore B3
+    inputBulk.value = 'B3';
+    const clickRestore = btnRestore.listeners['click'];
+    assert.ok(clickRestore);
+    clickRestore();
+    
+    assert.deepStrictEqual(state.excludedItems.sort(), ['B2', 'B4']);
+    assert.strictEqual(inputBulk.value, ''); // should reset
   });
 });

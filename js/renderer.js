@@ -85,6 +85,31 @@ function getSymbolSVG(type, color, size) {
 }
 
 export function renderPrintSheet(onToggleItem) {
+  // Update header & footer
+  const sheetHeader = document.getElementById('sheet-header');
+  const sheetTitle = document.getElementById('sheet-title');
+  const sheetSubtitle = document.getElementById('sheet-subtitle');
+  if (sheetHeader && sheetTitle && sheetSubtitle) {
+    if (state.title || state.subtitle) {
+      sheetTitle.innerText = state.title || '';
+      sheetSubtitle.innerText = state.subtitle || '';
+      sheetHeader.classList.add('visible');
+    } else {
+      sheetHeader.classList.remove('visible');
+    }
+  }
+
+  const sheetFooter = document.getElementById('sheet-footer');
+  const sheetFooterText = document.getElementById('sheet-footer-text');
+  if (sheetFooter && sheetFooterText) {
+    if (state.footer) {
+      sheetFooterText.innerText = state.footer;
+      sheetFooter.classList.add('visible');
+    } else {
+      sheetFooter.classList.remove('visible');
+    }
+  }
+
   const container = document.getElementById('sheet-content');
   if (!container) return;
   container.innerHTML = '';
@@ -114,12 +139,20 @@ export function renderPrintSheet(onToggleItem) {
     // Grid of symbols
     const grid = document.createElement('div');
     grid.className = 'grid-container';
+    if (state.gridColumns > 0) {
+      grid.classList.add(`grid-cols-${state.gridColumns}`);
+      grid.className += ` grid-cols-${state.gridColumns}`;
+    }
 
     const items = getEffectiveItems(range);
     items.forEach(num => {
       const label = `${range.prefix}${num}`;
       const item = document.createElement('div');
       item.className = 'symbol-item';
+      if (state.labelPosition === 'above') {
+        item.classList.add('label-above');
+        item.className += ' label-above';
+      }
       item.title = `Click to exclude ${escapeHTML(label)}`;
 
       const shape = document.createElement('div');
