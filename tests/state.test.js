@@ -1,3 +1,13 @@
+let storage = {};
+globalThis.window = {
+  localStorage: {
+    setItem: (key, val) => { storage[key] = val; },
+    getItem: (key) => storage[key] || null,
+    clear: () => { storage = {}; }
+  }
+};
+globalThis.localStorage = globalThis.window.localStorage;
+
 import test from 'node:test';
 import assert from 'node:assert';
 import { 
@@ -6,7 +16,9 @@ import {
   removeRange, 
   toggleExclusion, 
   getEffectiveItems, 
-  resetState 
+  resetState,
+  saveState,
+  loadState
 } from '../js/state.js';
 
 test('State Operations Test Suite', async (t) => {
@@ -53,5 +65,37 @@ test('State Operations Test Suite', async (t) => {
     assert.strictEqual(state.ranges.length, 1);
     removeRange(id);
     assert.strictEqual(state.ranges.length, 0);
+  });
+
+  await t.test('should save and load state via localStorage persistence', () => {
+    resetState();
+    window.localStorage.clear();
+    
+    // Add a range, which triggers saveState()
+    addRange({ prefix: 'P', start: 1, end: 3, symbol: 'square', color: '#ff00ff' });
+    
+    // Assert localStorage has the saved state
+    const savedData = window.localStorage.getItem('touch_color_map_state');
+    assert.ok(savedData);
+    const parsed = JSON.parse(savedData);
+    assert.strictEqual(parsed.ranges.length, 1);
+    assert.strictEqual(parsed.ranges[0].prefix, 'P');
+    
+    // Reset state in memory
+    resetState();
+    assert.strictEqual(state.ranges.length, 0);
+    
+    // Load from localStorage
+    loadState();
+    assert.strictEqual(state.ranges.length, 1);
+    assert.strictEqual(state.ranges[0].prefix, 'P');
+  });
+
+  await t.test('should fallback gracefully when prefix is undefined', () => {
+    resetState();
+    // Should not throw, prefix should become ''
+    const id = addRange({ start: 1, end: 3 });
+    assert.strictEqual(state.ranges.length, 1);
+    assert.strictEqual(state.ranges[0].prefix, '');
   });
 });

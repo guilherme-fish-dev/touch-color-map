@@ -15,10 +15,10 @@ export function resetState() {
 }
 
 export function addRange({ prefix, start, end, symbol, color }) {
-  const id = 'range-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  const id = 'range-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11);
   state.ranges.push({
     id,
-    prefix: prefix.trim(),
+    prefix: (prefix || '').trim(),
     start: parseInt(start, 10),
     end: parseInt(end, 10),
     symbol: symbol || 'circle',
@@ -65,7 +65,7 @@ export function loadState() {
     const saved = localStorage.getItem('touch_color_map_state');
     if (saved) {
       try {
-        state = Object.assign(state, JSON.parse(saved));
+        Object.assign(state, JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse state", e);
       }
