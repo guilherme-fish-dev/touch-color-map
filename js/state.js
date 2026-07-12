@@ -77,7 +77,20 @@ export function loadState() {
     const saved = localStorage.getItem('touch_color_map_state');
     if (saved) {
       try {
-        Object.assign(state, JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          if (typeof parsed.theme === 'string') state.theme = parsed.theme;
+          if (typeof parsed.paperSize === 'string') state.paperSize = parsed.paperSize;
+          if (typeof parsed.symbolScale === 'number' && !isNaN(parsed.symbolScale)) {
+            state.symbolScale = parsed.symbolScale;
+          }
+          if (Array.isArray(parsed.ranges)) {
+            state.ranges = parsed.ranges.filter(r => r && typeof r === 'object' && r.id);
+          }
+          if (Array.isArray(parsed.excludedItems)) {
+            state.excludedItems = parsed.excludedItems.filter(item => typeof item === 'string');
+          }
+        }
       } catch (e) {
         console.error("Failed to parse state", e);
       }

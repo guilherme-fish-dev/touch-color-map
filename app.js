@@ -1,11 +1,12 @@
 import { state, addRange, loadState, saveState } from './js/state.js';
-import { renderColorPresets, renderActiveRanges, renderPrintSheet } from './js/renderer.js';
+import { renderColorPresets, renderActiveRanges, renderPrintSheet, renderExclusions } from './js/renderer.js';
 
 let selectedColor = '#6366f1';
 
 function refreshUI() {
   renderActiveRanges(refreshUI);
   renderPrintSheet(refreshUI);
+  renderExclusions(refreshUI);
   
   const scaleVal = document.getElementById('scale-val');
   if (scaleVal) {
@@ -55,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const endNum = parseInt(end, 10);
       if (startNum > endNum) {
         alert('Start number must be less than or equal to end number.');
+        return;
+      }
+
+      const rangeSize = endNum - startNum + 1;
+      if (rangeSize > 300) {
+        alert('A single range rule cannot contain more than 300 items. Please split your range.');
         return;
       }
 
@@ -117,6 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
         saveState();
         refreshUI();
       }
+    });
+  }
+
+  // Restore all exclusions
+  const btnRestoreAll = document.getElementById('btn-restore-all');
+  if (btnRestoreAll) {
+    btnRestoreAll.addEventListener('click', () => {
+      state.excludedItems = [];
+      saveState();
+      refreshUI();
     });
   }
 

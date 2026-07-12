@@ -56,14 +56,16 @@ globalThis.document = {
           this.listeners[event] = handler;
         },
         querySelector: function(selector) {
-          if (selector === '.btn-icon') {
-            return {
-              addEventListener: (event, cb) => {
-                this.btnIconListener = cb;
+          this.queriedElements = this.queriedElements || {};
+          if (!this.queriedElements[selector]) {
+            this.queriedElements[selector] = {
+              listeners: {},
+              addEventListener: function(event, cb) {
+                this.listeners[event] = cb;
               }
             };
           }
-          return null;
+          return this.queriedElements[selector];
         }
       };
     }
@@ -92,14 +94,16 @@ globalThis.document = {
         this.listeners[event] = cb;
       },
       querySelector: function(selector) {
-        if (selector === '.btn-icon') {
-          return {
-            addEventListener: (event, cb) => {
-              this.btnIconListener = cb;
+        this.queriedElements = this.queriedElements || {};
+        if (!this.queriedElements[selector]) {
+          this.queriedElements[selector] = {
+            listeners: {},
+            addEventListener: function(event, cb) {
+              this.listeners[event] = cb;
             }
           };
         }
-        return null;
+        return this.queriedElements[selector];
       }
     };
   },
@@ -124,7 +128,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 
 import { state, resetState } from '../js/state.js';
-import { renderColorPresets, renderActiveRanges, renderPrintSheet } from '../js/renderer.js';
+import { renderColorPresets, renderActiveRanges, renderPrintSheet, renderExclusions } from '../js/renderer.js';
 
 test('Renderer & Event Logic Integration Tests', async (t) => {
   await t.test('should render color presets correctly', () => {
@@ -238,6 +242,17 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     formSubmit(mockEvent);
     assert.strictEqual(alertCalled, false);
     assert.strictEqual(state.ranges.length, 1);
+
+    // Test validation for range size > 300
+    elements['input-start'] = { value: '1' };
+    elements['input-end'] = { value: '302' }; // 302 items (> 300)
+    alertCalled = false;
+    alertMessage = '';
+    formSubmit(mockEvent);
+    assert.strictEqual(alertCalled, true);
+    assert.ok(alertMessage.includes('cannot contain more than 300 items'));
+    // ranges length should still be 1
+    assert.strictEqual(state.ranges.length, 1);
   });
 
   await t.test('should prevent double click triggers on exclusion items', async () => {
@@ -276,5 +291,76 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     // toggleCallCount should be 1, and state.excludedItems should have 'E1' exactly once
     assert.strictEqual(toggleCallCount, 1);
     assert.deepStrictEqual(state.excludedItems, ['E1']);
+  });
+
+  await t.test('should render exclusions log correctly and allow restoring items', () => {
+    elements = {};
+    resetState();
+    
+    // Test when exclusions is empty
+    renderExclusions(() => {});
+    const logListEmpty = elements['exclusions-log-list'];
+    assert.ok(logListEmpty.innerHTML.includes('No exclusions'));
+    assert.strictEqual(elements['exclusions-count'].innerText, '0 items excluded');
+
+    // Add exclusions and a matching range to test styling/border
+    state.excludedItems.push('C3');
+    state.ranges.push({
+      id: 'test-range-ex',
+      prefix: 'C',
+      start: 1,
+      end: 5,
+      symbol: 'circle',
+      color: '#ff0000'
+    });
+    
+    let onRestoreCalled = false;
+    renderExclusions(() => {
+      onRestoreCalled = true;
+    });
+
+    assert.strictEqual(elements['exclusions-count'].innerText, '1 item excluded');
+    const logList = elements['exclusions-log-list'];
+    assert.strictEqual(logList.children.length, 1);
+    
+    const tag = logList.children[0];
+    assert.strictEqual(tag.className, 'exclusion-tag');
+    assert.ok(tag.innerHTML.includes('C3'));
+    
+    // Simulate clicking restore button on the tag
+    const restoreBtn = tag.querySelector('.restore-tag-btn');
+    assert.ok(restoreBtn);
+    
+    const clickHandler = restoreBtn.listeners['click'];
+    assert.ok(clickHandler);
+    
+    clickHandler();
+    
+    assert.strictEqual(onRestoreCalled, true);
+    assert.strictEqual(state.excludedItems.indexOf('C3'), -1); // successfully removed/restored
+  });
+
+  await t.test('should restore all exclusions on btn-restore-all click', async () => {
+    elements = {};
+    resetState();
+    globalThis.document.listeners = {};
+    
+    await import('../app.js?t=' + Date.now() + '_restore_all');
+    
+    const handler = globalThis.document.listeners['DOMContentLoaded'];
+    handler();
+    
+    state.excludedItems.push('C3');
+    state.excludedItems.push('C4');
+    
+    const btnRestoreAll = elements['btn-restore-all'];
+    assert.ok(btnRestoreAll);
+    
+    const clickHandler = btnRestoreAll.listeners['click'];
+    assert.ok(clickHandler);
+    
+    clickHandler();
+    
+    assert.strictEqual(state.excludedItems.length, 0);
   });
 });

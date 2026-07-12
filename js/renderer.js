@@ -129,6 +129,8 @@ export function renderPrintSheet(onToggleItem) {
       const textLabel = document.createElement('span');
       textLabel.className = 'symbol-label';
       textLabel.style.color = range.color;
+      const labelFontSize = Math.round(9 * state.symbolScale);
+      textLabel.style.fontSize = `${labelFontSize}px`;
       textLabel.innerText = label;
 
       shape.appendChild(textLabel);
@@ -149,5 +151,43 @@ export function renderPrintSheet(onToggleItem) {
 
     section.appendChild(grid);
     container.appendChild(section);
+  });
+}
+
+export function renderExclusions(onRestore) {
+  const list = document.getElementById('exclusions-log-list');
+  const countLabel = document.getElementById('exclusions-count');
+  if (!list || !countLabel) return;
+  list.innerHTML = '';
+  
+  const count = state.excludedItems.length;
+  countLabel.innerText = `${count} item${count !== 1 ? 's' : ''} excluded`;
+
+  if (count === 0) {
+    list.innerHTML = '<p class="subtitle-text" style="text-align: center; width: 100%; padding: 8px 0;">No exclusions</p>';
+    return;
+  }
+
+  state.excludedItems.forEach(label => {
+    const tag = document.createElement('div');
+    tag.className = 'exclusion-tag';
+    // find range style if possible to match tag border/color
+    const range = state.ranges.find(r => {
+      if (r.prefix && !label.startsWith(r.prefix)) return false;
+      const numStr = r.prefix ? label.slice(r.prefix.length) : label;
+      const num = parseInt(numStr, 10);
+      return num >= r.start && num <= r.end;
+    });
+    const color = range ? range.color : 'var(--text-secondary)';
+    tag.style.border = `1px solid ${color}`;
+    tag.innerHTML = `
+      <span>${escapeHTML(label)}</span>
+      <button class="restore-tag-btn" style="background: none; border: none; color: ${color}; cursor: pointer; font-weight: bold; font-size: 0.9rem;">&times;</button>
+    `;
+    tag.querySelector('.restore-tag-btn').addEventListener('click', () => {
+      toggleExclusion(label);
+      onRestore();
+    });
+    list.appendChild(tag);
   });
 }

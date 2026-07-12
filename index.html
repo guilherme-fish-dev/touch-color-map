@@ -26,7 +26,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="input-prefix">Prefix</label>
-              <input type="text" id="input-prefix" placeholder="e.g. C, GC" maxlength="5">
+              <input type="text" id="input-prefix" placeholder="e.g. C, GC" maxlength="5" pattern="[a-zA-Z0-9]*" title="Alphanumeric characters only">
             </div>
           </div>
           <div class="form-row split">
@@ -79,6 +79,17 @@
         <h2>Active Ranges</h2>
         <div id="active-ranges-list" class="ranges-list">
           <!-- Empty state or items rendered dynamically -->
+        </div>
+      </section>
+
+      <section class="exclusions-log-section">
+        <h2>Excluded Items</h2>
+        <div class="exclusions-header">
+          <span id="exclusions-count" class="subtitle-text">0 items excluded</span>
+          <button id="btn-restore-all" class="btn btn-secondary btn-small" style="font-size: 0.75rem; padding: 4px 8px;">Restore All</button>
+        </div>
+        <div id="exclusions-log-list" class="exclusions-list">
+          <!-- Excluded items tags rendered dynamically -->
         </div>
       </section>
 
