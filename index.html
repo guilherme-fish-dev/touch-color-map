@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch Color Map Generator</title>
+  <meta name="description" content="Generate high-resolution printable tracking grids with custom symbol ranges, shapes, and colors for diamond painting, cross-stitch, and craft organizing.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-layout no-print">
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar">
+      <header class="sidebar-header">
+        <h1 class="logo-text">Touch Color Map</h1>
+        <p class="subtitle-text">Printable Tracker Grid Generator</p>
+      </header>
+
+      <section class="config-section">
+        <h2>Create New Range</h2>
+        <form id="range-form" class="control-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-prefix">Prefix</label>
+              <input type="text" id="input-prefix" placeholder="e.g. C, GC" maxlength="5">
+            </div>
+          </div>
+          <div class="form-row split">
+            <div class="form-group">
+              <label for="input-start">Start</label>
+              <input type="number" id="input-start" value="1" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="input-end">End</label>
+              <input type="number" id="input-end" value="10" min="1" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Symbol Type</label>
+            <div class="symbol-selector">
+              <label class="radio-card">
+                <input type="radio" name="symbol-type" value="circle" checked>
+                <div class="radio-content">
+                  <span class="symbol-preview circle-preview"></span>
+                  Circle
+                </div>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="symbol-type" value="heart">
+                <div class="radio-content">
+                  <span class="symbol-preview heart-preview"></span>
+                  Heart
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Color Swatch</label>
+            <div class="color-picker-wrapper">
+              <div class="color-presets" id="color-presets">
+                <!-- Rendered dynamically -->
+              </div>
+              <div class="custom-color-input">
+                <input type="color" id="input-color" value="#6366f1">
+                <span>Custom Color</span>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Range Rule</button>
+        </form>
+      </section>
+
+      <!-- Active Rules Panel -->
+      <section class="active-ranges-section">
+        <h2>Active Ranges</h2>
+        <div id="active-ranges-list" class="ranges-list">
+          <!-- Empty state or items rendered dynamically -->
+        </div>
+      </section>
+
+      <!-- Global Settings Panel -->
+      <section class="settings-section">
+        <h2>Page & Controls</h2>
+        <div class="form-group">
+          <label for="select-paper">Paper Size</label>
+          <select id="select-paper">
+            <option value="a4">A4 (210 x 297 mm)</option>
+            <option value="letter">US Letter (8.5 x 11 in)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="range-scale">Symbol Scale: <span id="scale-val">1.0</span>x</label>
+          <input type="range" id="range-scale" min="0.6" max="1.8" step="0.1" value="1.0">
+        </div>
+        <div class="button-group">
+          <button id="btn-theme" class="btn btn-secondary">Toggle Theme</button>
+          <button id="btn-clear" class="btn btn-danger">Clear All</button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Preview Canvas Area -->
+    <main class="preview-area">
+      <header class="preview-header">
+        <div class="preview-title">
+          <h2>Print Preview Sheet</h2>
+          <p>Click on any shape to remove it from the map. The remaining symbols will collapse and re-flow.</p>
+        </div>
+        <button id="btn-print" class="btn btn-success">Print Map</button>
+      </header>
+
+      <div class="sheet-container">
+        <!-- Represents the physical printed page -->
+        <div id="print-sheet" class="print-page paper-a4">
+          <div id="sheet-content">
+            <!-- Dynamically populated outline categories -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Script Entry -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
