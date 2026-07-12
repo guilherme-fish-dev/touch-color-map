@@ -3,6 +3,13 @@ let confirmCalled = false;
 let confirmMessage = '';
 let confirmResponse = true;
 let printCalled = false;
+let alertCalled = false;
+let alertMessage = '';
+
+globalThis.alert = (msg) => {
+  alertCalled = true;
+  alertMessage = msg;
+};
 
 globalThis.window = {
   localStorage: {
@@ -17,7 +24,8 @@ globalThis.window = {
   },
   print: () => {
     printCalled = true;
-  }
+  },
+  alert: globalThis.alert
 };
 globalThis.localStorage = globalThis.window.localStorage;
 
@@ -26,6 +34,12 @@ let elements = {};
 globalThis.document = {
   getElementById: (id) => {
     if (!elements[id]) {
+      const classList = {
+        classes: new Set(),
+        add: function(c) { this.classes.add(c); },
+        remove: function(c) { this.classes.delete(c); },
+        contains: function(c) { return this.classes.has(c); }
+      };
       elements[id] = {
         innerHTML: '',
         innerText: '',
@@ -34,6 +48,7 @@ globalThis.document = {
         style: {},
         children: [],
         listeners: {},
+        classList: classList,
         appendChild: function(child) {
           this.children.push(child);
         },
@@ -55,6 +70,12 @@ globalThis.document = {
     return elements[id];
   },
   createElement: (tag) => {
+    const classList = {
+      classes: new Set(),
+      add: function(c) { this.classes.add(c); },
+      remove: function(c) { this.classes.delete(c); },
+      contains: function(c) { return this.classes.has(c); }
+    };
     return {
       tagName: tag,
       className: '',
@@ -63,6 +84,7 @@ globalThis.document = {
       innerText: '',
       children: [],
       listeners: {},
+      classList: classList,
       appendChild: function(child) {
         this.children.push(child);
       },
@@ -178,5 +200,81 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
 
     // Verify theme was loaded/applied
     assert.strictEqual(globalThis.document.documentElement['data-theme'], 'dark');
+  });
+
+  await t.test('should validate start <= end range in app.js form submit', async () => {
+    elements = {};
+    resetState();
+    globalThis.document.listeners = {};
+    
+    await import('../app.js?t=' + Date.now() + '_val');
+    
+    const handler = globalThis.document.listeners['DOMContentLoaded'];
+    handler();
+
+    // Mock form inputs
+    elements['input-prefix'] = { value: 'X' };
+    elements['input-start'] = { value: '10' };
+    elements['input-end'] = { value: '5' }; // Invalid: 10 > 5
+    elements['input-color'] = { value: '#ffffff' };
+    
+    // Trigger form submit
+    const formSubmit = elements['range-form'].listeners['submit'];
+    assert.ok(formSubmit);
+    
+    alertCalled = false;
+    alertMessage = '';
+    const mockEvent = { preventDefault: () => {} };
+    formSubmit(mockEvent);
+    
+    assert.strictEqual(alertCalled, true);
+    assert.strictEqual(alertMessage, 'Start number must be less than or equal to end number.');
+    // Check range was not added
+    assert.strictEqual(state.ranges.length, 0);
+
+    // Now valid values
+    elements['input-end'] = { value: '15' }; // Valid: 10 <= 15
+    alertCalled = false;
+    formSubmit(mockEvent);
+    assert.strictEqual(alertCalled, false);
+    assert.strictEqual(state.ranges.length, 1);
+  });
+
+  await t.test('should prevent double click triggers on exclusion items', async () => {
+    elements = {};
+    resetState();
+    
+    state.ranges.push({
+      id: 'test-range-exclusion',
+      prefix: 'E',
+      start: 1,
+      end: 1,
+      symbol: 'circle',
+      color: '#ff0000'
+    });
+    
+    let toggleCallCount = 0;
+    renderPrintSheet(() => {
+      toggleCallCount++;
+    });
+
+    const content = elements['sheet-content'];
+    const section = content.children[0];
+    const grid = section.children[1];
+    const item = grid.children[0];
+    
+    const clickHandler = item.listeners['click'];
+    assert.ok(clickHandler);
+    
+    // Trigger double clicks
+    clickHandler();
+    clickHandler();
+    
+    // Wait for timeouts
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // toggleCallCount should be 1, and state.excludedItems should have 'E1' exactly once
+    assert.strictEqual(toggleCallCount, 1);
+    assert.deepStrictEqual(state.excludedItems, ['E1']);
   });
 });

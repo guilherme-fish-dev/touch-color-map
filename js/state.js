@@ -29,8 +29,20 @@ export function addRange({ prefix, start, end, symbol, color }) {
 }
 
 export function removeRange(id) {
-  state.ranges = state.ranges.filter(r => r.id !== id);
-  saveState();
+  const range = state.ranges.find(r => r.id === id);
+  if (range) {
+    state.excludedItems = state.excludedItems.filter(label => {
+      // check if label matches range.prefix + [range.start...range.end]
+      if (range.prefix && !label.startsWith(range.prefix)) return true;
+      const numStr = range.prefix ? label.slice(range.prefix.length) : label;
+      const num = parseInt(numStr, 10);
+      if (isNaN(num)) return true;
+      const inRange = num >= range.start && num <= range.end;
+      return !inRange;
+    });
+    state.ranges = state.ranges.filter(r => r.id !== id);
+    saveState();
+  }
 }
 
 export function toggleExclusion(label) {

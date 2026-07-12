@@ -98,4 +98,18 @@ test('State Operations Test Suite', async (t) => {
     assert.strictEqual(state.ranges.length, 1);
     assert.strictEqual(state.ranges[0].prefix, '');
   });
+
+  await t.test('should clean up stale excluded items when a range is removed', () => {
+    resetState();
+    const id = addRange({ prefix: 'H', start: 1, end: 5, symbol: 'circle', color: '#ff0000' });
+    toggleExclusion('H3');
+    toggleExclusion('H4');
+    toggleExclusion('J2'); // exclusion from a different range
+    
+    assert.deepStrictEqual(state.excludedItems, ['H3', 'H4', 'J2']);
+    
+    removeRange(id);
+    // H3 and H4 should be removed, J2 should remain
+    assert.deepStrictEqual(state.excludedItems, ['J2']);
+  });
 });

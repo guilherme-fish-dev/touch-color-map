@@ -1,5 +1,15 @@
 import { toggleExclusion, removeRange, getEffectiveItems, state } from './state.js';
 
+function escapeHTML(str) {
+  return String(str || '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  })[m]);
+}
+
 export const PRESET_COLORS = [
   '#6366f1', // Indigo
   '#f43f5e', // Rose
@@ -41,7 +51,7 @@ export function renderActiveRanges(onDelete) {
     card.innerHTML = `
       <div class="range-card-info">
         <div class="range-card-color-indicator" style="background-color: ${range.color}"></div>
-        <span><strong>${range.prefix || 'No Prefix'}</strong> (${range.start}-${range.end})</span>
+        <span><strong>${escapeHTML(range.prefix || 'No Prefix')}</strong> (${range.start}-${range.end})</span>
       </div>
       <button class="btn-icon" title="Delete Range">&times;</button>
     `;
@@ -97,7 +107,7 @@ export function renderPrintSheet(onToggleItem) {
     header.style.color = range.color;
     header.style.borderBottomColor = range.color;
     header.innerHTML = `
-      <span>Range: ${range.prefix ? range.prefix + ' ' : ''}${range.start} to ${range.end}</span>
+      <span>Range: ${range.prefix ? escapeHTML(range.prefix) + ' ' : ''}${range.start} to ${range.end}</span>
     `;
     section.appendChild(header);
 
@@ -110,7 +120,7 @@ export function renderPrintSheet(onToggleItem) {
       const label = `${range.prefix}${num}`;
       const item = document.createElement('div');
       item.className = 'symbol-item';
-      item.title = `Click to exclude ${label}`;
+      item.title = `Click to exclude ${escapeHTML(label)}`;
 
       const shape = document.createElement('div');
       shape.className = 'symbol-shape';
@@ -125,6 +135,7 @@ export function renderPrintSheet(onToggleItem) {
       item.appendChild(shape);
 
       item.addEventListener('click', () => {
+        if (item.classList.contains('fade-out')) return;
         // Fade-out visual cue before removal
         item.classList.add('fade-out');
         setTimeout(() => {

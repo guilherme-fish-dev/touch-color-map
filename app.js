@@ -6,7 +6,11 @@ let selectedColor = '#6366f1';
 function refreshUI() {
   renderActiveRanges(refreshUI);
   renderPrintSheet(refreshUI);
-  document.getElementById('scale-val').innerText = state.symbolScale;
+  
+  const scaleVal = document.getElementById('scale-val');
+  if (scaleVal) {
+    scaleVal.innerText = state.symbolScale;
+  }
   
   // Theme application
   document.documentElement.setAttribute('data-theme', state.theme);
@@ -46,6 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const end = document.getElementById('input-end').value;
       const symbol = document.querySelector('input[name="symbol-type"]:checked').value;
       const color = document.getElementById('input-color').value;
+
+      const startNum = parseInt(start, 10);
+      const endNum = parseInt(end, 10);
+      if (startNum > endNum) {
+        alert('Start number must be less than or equal to end number.');
+        return;
+      }
 
       addRange({ prefix, start, end, symbol, color });
       
