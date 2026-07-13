@@ -17,6 +17,7 @@ import {
   toggleExclusion, 
   getEffectiveItems,
   getEffectiveLabels,
+  naturalCompare,
   resetState,
   saveState,
   loadState,
@@ -256,5 +257,14 @@ test('State Operations Test Suite', async (t) => {
     removeRange(id);
     assert.ok(!state.excludedItems.includes('CG0.5'));
     assert.strictEqual(state.ranges.length, 0);
+  });
+
+  await t.test('Natural compare alphanumeric sorting logic', () => {
+    // Alphanumeric lists
+    const unsorted = ['WG1', 'WG0.5', 'F2', 'F', '12', 'F1', 'CG0.5', 'CG1', '2', 'BG12', 'BG2'];
+    const expected = ['2', '12', 'BG2', 'BG12', 'CG0.5', 'CG1', 'F', 'F1', 'F2', 'WG0.5', 'WG1'];
+    
+    unsorted.sort(naturalCompare);
+    assert.deepStrictEqual(unsorted, expected);
   });
 });

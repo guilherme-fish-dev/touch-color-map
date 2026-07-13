@@ -1,4 +1,4 @@
-import { toggleExclusion, removeRange, getEffectiveItems, getEffectiveLabels, state } from './state.js';
+import { toggleExclusion, removeRange, getEffectiveItems, getEffectiveLabels, naturalCompare, state } from './state.js';
 
 function escapeHTML(str) {
   return String(str || '').replace(/[&<>"']/g, m => ({
@@ -132,43 +132,57 @@ export function renderPrintSheet(onToggleItem) {
       grid.classList.add(`grid-cols-${state.gridColumns}`);
     }
 
+    const allItems = [];
     state.ranges.forEach(range => {
       const labels = getEffectiveLabels(range);
       labels.forEach(label => {
-        const item = document.createElement('div');
-        item.className = 'symbol-item';
-        if (state.labelPosition === 'above') {
-          item.classList.add('label-above');
-        } else if (state.labelPosition === 'below') {
-          item.classList.add('label-below');
-        }
-        item.title = `Click to exclude ${escapeHTML(label)}`;
-
-        const shape = document.createElement('div');
-        shape.className = 'symbol-shape';
-        shape.innerHTML = getSymbolSVG(range.symbol, range.color, size);
-
-        const textLabel = document.createElement('span');
-        textLabel.className = 'symbol-label';
-        textLabel.style.color = range.color;
-        const labelFontSize = Math.round(9 * state.symbolScale);
-        textLabel.style.fontSize = `${labelFontSize}px`;
-        textLabel.innerText = label;
-
-        shape.appendChild(textLabel);
-        item.appendChild(shape);
-
-        item.addEventListener('click', () => {
-          if (item.classList.contains('fade-out')) return;
-          item.classList.add('fade-out');
-          setTimeout(() => {
-            toggleExclusion(label);
-            onToggleItem();
-          }, 150);
+        allItems.push({
+          label,
+          symbol: range.symbol,
+          color: range.color
         });
-
-        grid.appendChild(item);
       });
+    });
+
+    if (state.sortAlphanumerically) {
+      allItems.sort((a, b) => naturalCompare(a.label, b.label));
+    }
+
+    allItems.forEach(itemInfo => {
+      const { label, symbol, color } = itemInfo;
+      const item = document.createElement('div');
+      item.className = 'symbol-item';
+      if (state.labelPosition === 'above') {
+        item.classList.add('label-above');
+      } else if (state.labelPosition === 'below') {
+        item.classList.add('label-below');
+      }
+      item.title = `Click to exclude ${escapeHTML(label)}`;
+
+      const shape = document.createElement('div');
+      shape.className = 'symbol-shape';
+      shape.innerHTML = getSymbolSVG(symbol, color, size);
+
+      const textLabel = document.createElement('span');
+      textLabel.className = 'symbol-label';
+      textLabel.style.color = color;
+      const labelFontSize = Math.round(9 * state.symbolScale);
+      textLabel.style.fontSize = `${labelFontSize}px`;
+      textLabel.innerText = label;
+
+      shape.appendChild(textLabel);
+      item.appendChild(shape);
+
+      item.addEventListener('click', () => {
+        if (item.classList.contains('fade-out')) return;
+        item.classList.add('fade-out');
+        setTimeout(() => {
+          toggleExclusion(label);
+          onToggleItem();
+        }, 150);
+      });
+
+      grid.appendChild(item);
     });
 
     section.appendChild(grid);
@@ -185,7 +199,18 @@ export function renderPrintSheet(onToggleItem) {
       }
 
       const labels = getEffectiveLabels(range);
-      labels.forEach(label => {
+      const rangeItems = labels.map(label => ({
+        label,
+        symbol: range.symbol,
+        color: range.color
+      }));
+
+      if (state.sortAlphanumerically) {
+        rangeItems.sort((a, b) => naturalCompare(a.label, b.label));
+      }
+
+      rangeItems.forEach(itemInfo => {
+        const { label, symbol, color } = itemInfo;
         const item = document.createElement('div');
         item.className = 'symbol-item';
         if (state.labelPosition === 'above') {
@@ -197,11 +222,11 @@ export function renderPrintSheet(onToggleItem) {
 
         const shape = document.createElement('div');
         shape.className = 'symbol-shape';
-        shape.innerHTML = getSymbolSVG(range.symbol, range.color, size);
+        shape.innerHTML = getSymbolSVG(symbol, color, size);
 
         const textLabel = document.createElement('span');
         textLabel.className = 'symbol-label';
-        textLabel.style.color = range.color;
+        textLabel.style.color = color;
         const labelFontSize = Math.round(9 * state.symbolScale);
         textLabel.style.fontSize = `${labelFontSize}px`;
         textLabel.innerText = label;

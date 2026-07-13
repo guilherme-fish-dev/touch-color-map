@@ -9,7 +9,8 @@ export let state = {
   footer: '',
   labelPosition: 'inside',
   gridColumns: 0,
-  groupRanges: true
+  groupRanges: true,
+  sortAlphanumerically: true
 };
 
 export function resetState() {
@@ -24,6 +25,7 @@ export function resetState() {
   state.labelPosition = 'inside';
   state.gridColumns = 0;
   state.groupRanges = true;
+  state.sortAlphanumerically = true;
 }
 
 export function addRange({ type = 'range', customItems = '', prefix, start, end, symbol, color }) {
@@ -164,6 +166,9 @@ export function loadState() {
           if (typeof parsed.groupRanges === 'boolean') {
             state.groupRanges = parsed.groupRanges;
           }
+          if (typeof parsed.sortAlphanumerically === 'boolean') {
+            state.sortAlphanumerically = parsed.sortAlphanumerically;
+          }
         }
       } catch (e) {
         console.error("Failed to parse state", e);
@@ -224,5 +229,32 @@ export function bulkRestore(expression) {
   const items = parseBulkExpression(expression);
   state.excludedItems = state.excludedItems.filter(item => !items.includes(item));
   saveState();
+}
+
+export function naturalCompare(a, b) {
+  const aChunks = String(a).split(/(\d+(?:\.\d+)?)/);
+  const bChunks = String(b).split(/(\d+(?:\.\d+)?)/);
+  
+  const minLen = Math.min(aChunks.length, bChunks.length);
+  for (let i = 0; i < minLen; i++) {
+    const aChunk = aChunks[i];
+    const bChunk = bChunks[i];
+    
+    if (aChunk === bChunk) continue;
+    
+    const aNum = parseFloat(aChunk);
+    const bNum = parseFloat(bChunk);
+    
+    const aIsNaN = isNaN(aNum);
+    const bIsNaN = isNaN(bNum);
+    
+    if (!aIsNaN && !bIsNaN) {
+      return aNum - bNum;
+    }
+    
+    return aChunk.localeCompare(bChunk, undefined, { numeric: true, sensitivity: 'base' });
+  }
+  
+  return aChunks.length - bChunks.length;
 }
 

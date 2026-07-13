@@ -62,6 +62,11 @@ function refreshUI() {
   if (checkboxGroupRanges) {
     checkboxGroupRanges.checked = state.groupRanges;
   }
+
+  const checkboxSortAlphanumerically = document.getElementById('checkbox-sort-alphanumerically');
+  if (checkboxSortAlphanumerically) {
+    checkboxSortAlphanumerically.checked = state.sortAlphanumerically;
+  }
 }
 
 // Setup presets color selections
@@ -216,6 +221,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (checkboxGroupRanges) {
     checkboxGroupRanges.addEventListener('change', (e) => {
       state.groupRanges = e.target.checked;
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Sort alphanumerically checkbox handler
+  const checkboxSortAlphanumerically = document.getElementById('checkbox-sort-alphanumerically');
+  if (checkboxSortAlphanumerically) {
+    checkboxSortAlphanumerically.addEventListener('change', (e) => {
+      state.sortAlphanumerically = e.target.checked;
       saveState();
       refreshUI();
     });
