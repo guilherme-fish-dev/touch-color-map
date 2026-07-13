@@ -272,7 +272,7 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
 
     const content = elements['sheet-content'];
     const section = content.children[0];
-    const grid = section.children[1];
+    const grid = section.children[0];
     const item = grid.children[0];
     
     const clickHandler = item.listeners['click'];
@@ -409,7 +409,7 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     
     let content = elements['sheet-content'];
     let section = content.children[0];
-    let grid = section.children[1];
+    let grid = section.children[0];
     assert.strictEqual(grid.className, 'grid-container');
     
     // Check columns mapping (gridColumns = 5)
@@ -417,7 +417,7 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     renderPrintSheet(() => {});
     content = elements['sheet-content'];
     section = content.children[0];
-    grid = section.children[1];
+    grid = section.children[0];
     assert.ok(grid.classList.contains('grid-cols-5'));
   });
 
@@ -440,7 +440,7 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     
     let content = elements['sheet-content'];
     let section = content.children[0];
-    let grid = section.children[1];
+    let grid = section.children[0];
     let item = grid.children[0];
     assert.strictEqual(item.className, 'symbol-item');
     assert.strictEqual(item.classList.contains('label-above'), false);
@@ -450,7 +450,7 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     renderPrintSheet(() => {});
     content = elements['sheet-content'];
     section = content.children[0];
-    grid = section.children[1];
+    grid = section.children[0];
     item = grid.children[0];
     assert.ok(item.classList.contains('label-above'));
 
@@ -459,7 +459,7 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     renderPrintSheet(() => {});
     content = elements['sheet-content'];
     section = content.children[0];
-    grid = section.children[1];
+    grid = section.children[0];
     item = grid.children[0];
     assert.ok(item.classList.contains('label-below'));
   });

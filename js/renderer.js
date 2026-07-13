@@ -126,15 +126,7 @@ export function renderPrintSheet(onToggleItem) {
     const section = document.createElement('section');
     section.className = 'range-section';
 
-    // Header
-    const header = document.createElement('div');
-    header.className = 'range-section-header';
-    header.style.color = range.color;
-    header.style.borderBottomColor = range.color;
-    header.innerHTML = `
-      <span>Range: ${range.prefix ? escapeHTML(range.prefix) + ' ' : ''}${range.start} to ${range.end}</span>
-    `;
-    section.appendChild(header);
+
 
     // Grid of symbols
     const grid = document.createElement('div');
