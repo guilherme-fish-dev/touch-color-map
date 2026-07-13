@@ -173,31 +173,18 @@ export function parseBulkExpression(expression) {
 }
 
 export function bulkExclude(expression) {
-  try {
-    const items = parseBulkExpression(expression);
-    for (const item of items) {
-      if (!state.excludedItems.includes(item)) {
-        state.excludedItems.push(item);
-      }
-    }
-    saveState();
-  } catch (error) {
-    console.error('Bulk exclude error:', error);
-    if (typeof window !== 'undefined' && window.alert) {
-      window.alert(error.message);
+  const items = parseBulkExpression(expression);
+  for (const item of items) {
+    if (!state.excludedItems.includes(item)) {
+      state.excludedItems.push(item);
     }
   }
+  saveState();
 }
 
 export function bulkRestore(expression) {
-  try {
-    const items = parseBulkExpression(expression);
-    state.excludedItems = state.excludedItems.filter(item => !items.includes(item));
-    saveState();
-  } catch (error) {
-    console.error('Bulk restore error:', error);
-    if (typeof window !== 'undefined' && window.alert) {
-      window.alert(error.message);
-    }
-  }
+  const items = parseBulkExpression(expression);
+  state.excludedItems = state.excludedItems.filter(item => !items.includes(item));
+  saveState();
 }
+

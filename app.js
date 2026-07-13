@@ -179,9 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnBulkExclude.addEventListener('click', () => {
       const expr = inputBulkExclude.value.trim();
       if (expr) {
-        bulkExclude(expr);
-        inputBulkExclude.value = '';
-        refreshUI();
+        try {
+          bulkExclude(expr);
+          inputBulkExclude.value = '';
+          refreshUI();
+        } catch (err) {
+          alert(err.message);
+        }
       }
     });
   }
@@ -192,9 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnBulkRestore.addEventListener('click', () => {
       const expr = inputBulkExclude.value.trim();
       if (expr) {
-        bulkRestore(expr);
-        inputBulkExclude.value = '';
-        refreshUI();
+        try {
+          bulkRestore(expr);
+          inputBulkExclude.value = '';
+          refreshUI();
+        } catch (err) {
+          alert(err.message);
+        }
       }
     });
   }

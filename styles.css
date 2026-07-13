@@ -669,13 +669,11 @@ input[type="color"]::-webkit-color-swatch {
 /* ==========================================================================
    Label Position: Above layout
    ========================================================================== */
-.symbol-item.label-above .symbol-shape,
-.label-above .symbol-item .symbol-shape {
+.symbol-item.label-above .symbol-shape {
   flex-direction: column-reverse;
 }
 
-.symbol-item.label-above .symbol-label,
-.label-above .symbol-item .symbol-label {
+.symbol-item.label-above .symbol-label {
   position: static;
   margin-bottom: 6px;
   padding-bottom: 2px;

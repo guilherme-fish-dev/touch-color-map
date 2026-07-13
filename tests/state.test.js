@@ -152,19 +152,19 @@ test('State Operations Test Suite', async (t) => {
       parseBulkExpression('F1-1002');
     }, /Bulk range size cannot exceed 1000 items/);
 
-    // Verify bulkExclude and bulkRestore handle parsing errors gracefully
-    assert.doesNotThrow(() => {
+    // Verify bulkExclude and bulkRestore propagate parsing errors
+    assert.throws(() => {
       bulkExclude('F3-G5');
-    });
-    assert.doesNotThrow(() => {
+    }, /Mixed prefixes are not supported/);
+    assert.throws(() => {
       bulkExclude('F1-1002');
-    });
-    assert.doesNotThrow(() => {
+    }, /Bulk range size cannot exceed 1000 items/);
+    assert.throws(() => {
       bulkRestore('F3-G5');
-    });
-    assert.doesNotThrow(() => {
+    }, /Mixed prefixes are not supported/);
+    assert.throws(() => {
       bulkRestore('F1-1002');
-    });
+    }, /Bulk range size cannot exceed 1000 items/);
   });
 
   await t.test('Defensive Properties Initialization', () => {
