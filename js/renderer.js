@@ -1,4 +1,4 @@
-import { toggleExclusion, removeRange, getEffectiveItems, state } from './state.js';
+import { toggleExclusion, removeRange, getEffectiveItems, getEffectiveLabels, state } from './state.js';
 
 function escapeHTML(str) {
   return String(str || '').replace(/[&<>"']/g, m => ({
@@ -122,61 +122,109 @@ export function renderPrintSheet(onToggleItem) {
   // Size of symbols scaled
   const size = Math.round(36 * state.symbolScale);
 
-  state.ranges.forEach(range => {
+  if (state.groupRanges === false) {
     const section = document.createElement('section');
     section.className = 'range-section';
 
-
-
-    // Grid of symbols
     const grid = document.createElement('div');
     grid.className = 'grid-container';
     if (state.gridColumns > 0) {
       grid.classList.add(`grid-cols-${state.gridColumns}`);
     }
 
-    const items = getEffectiveItems(range);
-    items.forEach(num => {
-      const label = `${range.prefix}${num}`;
-      const item = document.createElement('div');
-      item.className = 'symbol-item';
-      if (state.labelPosition === 'above') {
-        item.classList.add('label-above');
-      } else if (state.labelPosition === 'below') {
-        item.classList.add('label-below');
-      }
-      item.title = `Click to exclude ${escapeHTML(label)}`;
+    state.ranges.forEach(range => {
+      const labels = getEffectiveLabels(range);
+      labels.forEach(label => {
+        const item = document.createElement('div');
+        item.className = 'symbol-item';
+        if (state.labelPosition === 'above') {
+          item.classList.add('label-above');
+        } else if (state.labelPosition === 'below') {
+          item.classList.add('label-below');
+        }
+        item.title = `Click to exclude ${escapeHTML(label)}`;
 
-      const shape = document.createElement('div');
-      shape.className = 'symbol-shape';
-      shape.innerHTML = getSymbolSVG(range.symbol, range.color, size);
+        const shape = document.createElement('div');
+        shape.className = 'symbol-shape';
+        shape.innerHTML = getSymbolSVG(range.symbol, range.color, size);
 
-      const textLabel = document.createElement('span');
-      textLabel.className = 'symbol-label';
-      textLabel.style.color = range.color;
-      const labelFontSize = Math.round(9 * state.symbolScale);
-      textLabel.style.fontSize = `${labelFontSize}px`;
-      textLabel.innerText = label;
+        const textLabel = document.createElement('span');
+        textLabel.className = 'symbol-label';
+        textLabel.style.color = range.color;
+        const labelFontSize = Math.round(9 * state.symbolScale);
+        textLabel.style.fontSize = `${labelFontSize}px`;
+        textLabel.innerText = label;
 
-      shape.appendChild(textLabel);
-      item.appendChild(shape);
+        shape.appendChild(textLabel);
+        item.appendChild(shape);
 
-      item.addEventListener('click', () => {
-        if (item.classList.contains('fade-out')) return;
-        // Fade-out visual cue before removal
-        item.classList.add('fade-out');
-        setTimeout(() => {
-          toggleExclusion(label);
-          onToggleItem();
-        }, 150);
+        item.addEventListener('click', () => {
+          if (item.classList.contains('fade-out')) return;
+          item.classList.add('fade-out');
+          setTimeout(() => {
+            toggleExclusion(label);
+            onToggleItem();
+          }, 150);
+        });
+
+        grid.appendChild(item);
       });
-
-      grid.appendChild(item);
     });
 
     section.appendChild(grid);
     container.appendChild(section);
-  });
+  } else {
+    state.ranges.forEach(range => {
+      const section = document.createElement('section');
+      section.className = 'range-section';
+
+      const grid = document.createElement('div');
+      grid.className = 'grid-container';
+      if (state.gridColumns > 0) {
+        grid.classList.add(`grid-cols-${state.gridColumns}`);
+      }
+
+      const labels = getEffectiveLabels(range);
+      labels.forEach(label => {
+        const item = document.createElement('div');
+        item.className = 'symbol-item';
+        if (state.labelPosition === 'above') {
+          item.classList.add('label-above');
+        } else if (state.labelPosition === 'below') {
+          item.classList.add('label-below');
+        }
+        item.title = `Click to exclude ${escapeHTML(label)}`;
+
+        const shape = document.createElement('div');
+        shape.className = 'symbol-shape';
+        shape.innerHTML = getSymbolSVG(range.symbol, range.color, size);
+
+        const textLabel = document.createElement('span');
+        textLabel.className = 'symbol-label';
+        textLabel.style.color = range.color;
+        const labelFontSize = Math.round(9 * state.symbolScale);
+        textLabel.style.fontSize = `${labelFontSize}px`;
+        textLabel.innerText = label;
+
+        shape.appendChild(textLabel);
+        item.appendChild(shape);
+
+        item.addEventListener('click', () => {
+          if (item.classList.contains('fade-out')) return;
+          item.classList.add('fade-out');
+          setTimeout(() => {
+            toggleExclusion(label);
+            onToggleItem();
+          }, 150);
+        });
+
+        grid.appendChild(item);
+      });
+
+      section.appendChild(grid);
+      container.appendChild(section);
+    });
+  }
 }
 
 export function renderExclusions(onRestore) {

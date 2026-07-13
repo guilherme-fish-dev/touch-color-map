@@ -15,7 +15,8 @@ import {
   addRange, 
   removeRange, 
   toggleExclusion, 
-  getEffectiveItems, 
+  getEffectiveItems,
+  getEffectiveLabels,
   resetState,
   saveState,
   loadState,
@@ -224,5 +225,36 @@ test('State Operations Test Suite', async (t) => {
     // Clean up
     removeRange(id);
     assert.ok(!state.excludedItems.includes('Z0'));
+  });
+
+  await t.test('Custom list ranges type and operations', () => {
+    resetState();
+    
+    // Add custom list rule
+    const id = addRange({
+      type: 'custom',
+      customItems: 'F, CG0.5, WG0.5, BG1',
+      symbol: 'heart',
+      color: '#ff00ff'
+    });
+    
+    const range = state.ranges[0];
+    assert.strictEqual(range.type, 'custom');
+    assert.deepStrictEqual(range.items, ['F', 'CG0.5', 'WG0.5', 'BG1']);
+    
+    let labels = getEffectiveLabels(range);
+    assert.deepStrictEqual(labels, ['F', 'CG0.5', 'WG0.5', 'BG1']);
+    
+    // Exclude CG0.5
+    toggleExclusion('CG0.5');
+    assert.ok(state.excludedItems.includes('CG0.5'));
+    
+    labels = getEffectiveLabels(range);
+    assert.deepStrictEqual(labels, ['F', 'WG0.5', 'BG1']);
+    
+    // Remove custom range cleans up exclusions
+    removeRange(id);
+    assert.ok(!state.excludedItems.includes('CG0.5'));
+    assert.strictEqual(state.ranges.length, 0);
   });
 });

@@ -8,7 +8,8 @@ export let state = {
   subtitle: '',
   footer: '',
   labelPosition: 'inside',
-  gridColumns: 0
+  gridColumns: 0,
+  groupRanges: true
 };
 
 export function resetState() {
@@ -22,35 +23,55 @@ export function resetState() {
   state.footer = '';
   state.labelPosition = 'inside';
   state.gridColumns = 0;
+  state.groupRanges = true;
 }
 
-export function addRange({ prefix, start, end, symbol, color }) {
-  const startNum = parseInt(start, 10);
-  const endNum = parseInt(end, 10);
-
-  if (isNaN(startNum) || isNaN(endNum)) {
-    throw new Error('Start and end numbers must be integers.');
-  }
-  if (startNum < 0) {
-    throw new Error('Start number must be 0 or greater.');
-  }
-  if (startNum > endNum) {
-    throw new Error('Start number must be less than or equal to end number.');
-  }
-  const rangeSize = endNum - startNum + 1;
-  if (rangeSize > 1000) {
-    throw new Error('A single range rule cannot contain more than 1000 items.');
-  }
-
+export function addRange({ type = 'range', customItems = '', prefix, start, end, symbol, color }) {
   const id = 'range-' + Date.now() + '-' + Math.random().toString(36).slice(2, 11);
-  state.ranges.push({
-    id,
-    prefix: (prefix || '').trim(),
-    start: startNum,
-    end: endNum,
-    symbol: symbol || 'circle',
-    color: color || '#6366f1'
-  });
+  
+  if (type === 'custom') {
+    const items = customItems.split(',').map(s => s.trim()).filter(Boolean);
+    if (items.length === 0) {
+      throw new Error('Custom items list cannot be empty.');
+    }
+    if (items.length > 1000) {
+      throw new Error('A single custom list cannot contain more than 1000 items.');
+    }
+    state.ranges.push({
+      id,
+      type: 'custom',
+      items,
+      symbol: symbol || 'circle',
+      color: color || '#6366f1'
+    });
+  } else {
+    const startNum = parseInt(start, 10);
+    const endNum = parseInt(end, 10);
+
+    if (isNaN(startNum) || isNaN(endNum)) {
+      throw new Error('Start and end numbers must be integers.');
+    }
+    if (startNum < 0) {
+      throw new Error('Start number must be 0 or greater.');
+    }
+    if (startNum > endNum) {
+      throw new Error('Start number must be less than or equal to end number.');
+    }
+    const rangeSize = endNum - startNum + 1;
+    if (rangeSize > 1000) {
+      throw new Error('A single range rule cannot contain more than 1000 items.');
+    }
+
+    state.ranges.push({
+      id,
+      type: 'range',
+      prefix: (prefix || '').trim(),
+      start: startNum,
+      end: endNum,
+      symbol: symbol || 'circle',
+      color: color || '#6366f1'
+    });
+  }
   saveState();
   return id;
 }
@@ -58,15 +79,19 @@ export function addRange({ prefix, start, end, symbol, color }) {
 export function removeRange(id) {
   const range = state.ranges.find(r => r.id === id);
   if (range) {
-    state.excludedItems = state.excludedItems.filter(label => {
-      // check if label matches range.prefix + [range.start...range.end]
-      if (range.prefix && !label.startsWith(range.prefix)) return true;
-      const numStr = range.prefix ? label.slice(range.prefix.length) : label;
-      const num = parseInt(numStr, 10);
-      if (isNaN(num)) return true;
-      const inRange = num >= range.start && num <= range.end;
-      return !inRange;
-    });
+    if (range.type === 'custom') {
+      state.excludedItems = state.excludedItems.filter(label => !range.items.includes(label));
+    } else {
+      state.excludedItems = state.excludedItems.filter(label => {
+        const rangePrefix = range.prefix || '';
+        if (rangePrefix && !label.startsWith(rangePrefix)) return true;
+        const numStr = rangePrefix ? label.slice(rangePrefix.length) : label;
+        const num = parseInt(numStr, 10);
+        if (isNaN(num)) return true;
+        const inRange = num >= range.start && num <= range.end;
+        return !inRange;
+      });
+    }
     state.ranges = state.ranges.filter(r => r.id !== id);
     saveState();
   }
@@ -84,13 +109,23 @@ export function toggleExclusion(label) {
 
 export function getEffectiveItems(range) {
   const items = [];
-  for (let i = range.start; i <= range.end; i++) {
-    const label = `${range.prefix}${i}`;
+  const start = typeof range.start === 'number' ? range.start : 0;
+  const end = typeof range.end === 'number' ? range.end : 0;
+  const prefix = range.prefix || '';
+  for (let i = start; i <= end; i++) {
+    const label = `${prefix}${i}`;
     if (!state.excludedItems.includes(label)) {
       items.push(i);
     }
   }
   return items;
+}
+
+export function getEffectiveLabels(range) {
+  if (range.type === 'custom') {
+    return (range.items || []).filter(label => !state.excludedItems.includes(label));
+  }
+  return getEffectiveItems(range).map(num => `${range.prefix || ''}${num}`);
 }
 
 export function saveState() {
@@ -120,11 +155,14 @@ export function loadState() {
           if (typeof parsed.title === 'string') state.title = parsed.title;
           if (typeof parsed.subtitle === 'string') state.subtitle = parsed.subtitle;
           if (typeof parsed.footer === 'string') state.footer = parsed.footer;
-          if (parsed.labelPosition === 'inside' || parsed.labelPosition === 'above') {
+          if (parsed.labelPosition === 'inside' || parsed.labelPosition === 'above' || parsed.labelPosition === 'below') {
             state.labelPosition = parsed.labelPosition;
           }
           if (typeof parsed.gridColumns === 'number' && [0, 5, 8, 10, 12].includes(parsed.gridColumns)) {
             state.gridColumns = parsed.gridColumns;
+          }
+          if (typeof parsed.groupRanges === 'boolean') {
+            state.groupRanges = parsed.groupRanges;
           }
         }
       } catch (e) {

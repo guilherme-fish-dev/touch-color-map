@@ -23,20 +23,37 @@
       <section class="config-section">
         <h2>Create New Range</h2>
         <form id="range-form" class="control-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="input-prefix">Prefix</label>
-              <input type="text" id="input-prefix" placeholder="e.g. C, GC" maxlength="5" pattern="[a-zA-Z0-9]*" title="Alphanumeric characters only">
+          <div class="form-group">
+            <label for="select-rule-type">Rule Type</label>
+            <select id="select-rule-type">
+              <option value="range">Numeric Range</option>
+              <option value="custom">Custom List (comma-separated)</option>
+            </select>
+          </div>
+
+          <div id="group-range-inputs">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-prefix">Prefix</label>
+                <input type="text" id="input-prefix" placeholder="e.g. C, GC" maxlength="5" pattern="[a-zA-Z0-9]*" title="Alphanumeric characters only">
+              </div>
+            </div>
+            <div class="form-row split">
+              <div class="form-group">
+                <label for="input-start">Start</label>
+                <input type="number" id="input-start" value="1" min="0" required>
+              </div>
+              <div class="form-group">
+                <label for="input-end">End</label>
+                <input type="number" id="input-end" value="10" min="0" required>
+              </div>
             </div>
           </div>
-          <div class="form-row split">
+
+          <div id="group-custom-inputs" style="display: none;">
             <div class="form-group">
-              <label for="input-start">Start</label>
-              <input type="number" id="input-start" value="1" min="0" required>
-            </div>
-            <div class="form-group">
-              <label for="input-end">End</label>
-              <input type="number" id="input-end" value="10" min="0" required>
+              <label for="input-custom-items">Custom Labels</label>
+              <textarea id="input-custom-items" placeholder="e.g. F, CG0.5, WG0.5, BG1, BG3" rows="3" style="width: 100%; min-height: 80px; padding: 8px; border: 1px solid var(--border-input); border-radius: 6px; background-color: var(--bg-input); color: var(--text-primary); font-family: inherit; font-size: 0.9rem; resize: vertical; box-sizing: border-box;"></textarea>
             </div>
           </div>
           <div class="form-group">
@@ -142,6 +159,10 @@
             <option value="above">Above Shape</option>
             <option value="below">Below Shape</option>
           </select>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="checkbox-group-ranges" checked style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+          <label for="checkbox-group-ranges" style="margin: 0; font-size: 0.9rem; cursor: pointer; user-select: none;">Group Ranges by Rule</label>
         </div>
       </section>
 

@@ -57,6 +57,11 @@ function refreshUI() {
   if (scaleSlider) {
     scaleSlider.value = state.symbolScale;
   }
+
+  const checkboxGroupRanges = document.getElementById('checkbox-group-ranges');
+  if (checkboxGroupRanges) {
+    checkboxGroupRanges.checked = state.groupRanges;
+  }
 }
 
 // Setup presets color selections
@@ -76,36 +81,70 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Setup static controls
   renderColorPresets(selectedColor, handlePresetSelect);
   
+  // Rule type toggling
+  const selectRuleType = document.getElementById('select-rule-type');
+  const groupRangeInputs = document.getElementById('group-range-inputs');
+  const groupCustomInputs = document.getElementById('group-custom-inputs');
+  if (selectRuleType && groupRangeInputs && groupCustomInputs) {
+    selectRuleType.addEventListener('change', (e) => {
+      if (e.target.value === 'custom') {
+        groupRangeInputs.style.display = 'none';
+        groupCustomInputs.style.display = 'block';
+        document.getElementById('input-start').removeAttribute('required');
+        document.getElementById('input-end').removeAttribute('required');
+      } else {
+        groupRangeInputs.style.display = 'block';
+        groupCustomInputs.style.display = 'none';
+        document.getElementById('input-start').setAttribute('required', 'required');
+        document.getElementById('input-end').setAttribute('required', 'required');
+      }
+    });
+  }
+
   // Bind form submissions
   const form = document.getElementById('range-form');
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       
+      const type = document.getElementById('select-rule-type').value;
       const prefix = document.getElementById('input-prefix').value;
       const start = document.getElementById('input-start').value;
       const end = document.getElementById('input-end').value;
+      const customItems = document.getElementById('input-custom-items').value;
       const symbol = document.querySelector('input[name="symbol-type"]:checked').value;
       const color = document.getElementById('input-color').value;
 
-      const startNum = parseInt(start, 10);
-      const endNum = parseInt(end, 10);
-      if (startNum > endNum) {
-        alert('Start number must be less than or equal to end number.');
-        return;
-      }
-
-      const rangeSize = endNum - startNum + 1;
-      if (rangeSize > 1000) {
-        alert('A single range rule cannot contain more than 1000 items. Please split your range.');
-        return;
+      if (type === 'custom') {
+        const items = customItems.split(',').map(s => s.trim()).filter(Boolean);
+        if (items.length === 0) {
+          alert('Custom items list cannot be empty.');
+          return;
+        }
+        if (items.length > 1000) {
+          alert('A single custom list cannot contain more than 1000 items.');
+          return;
+        }
+      } else {
+        const startNum = parseInt(start, 10);
+        const endNum = parseInt(end, 10);
+        if (startNum > endNum) {
+          alert('Start number must be less than or equal to end number.');
+          return;
+        }
+        const rangeSize = endNum - startNum + 1;
+        if (rangeSize > 1000) {
+          alert('A single range rule cannot contain more than 1000 items. Please split your range.');
+          return;
+        }
       }
 
       try {
-        addRange({ prefix, start, end, symbol, color });
+        addRange({ type, customItems, prefix, start, end, symbol, color });
         
-        // Reset prefix form only, keep color
+        // Reset inputs
         document.getElementById('input-prefix').value = '';
+        document.getElementById('input-custom-items').value = '';
         refreshUI();
       } catch (err) {
         alert(err.message);
@@ -167,6 +206,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (selectLabelPosition) {
     selectLabelPosition.addEventListener('change', (e) => {
       state.labelPosition = e.target.value;
+      saveState();
+      refreshUI();
+    });
+  }
+
+  // Group ranges checkbox handler
+  const checkboxGroupRanges = document.getElementById('checkbox-group-ranges');
+  if (checkboxGroupRanges) {
+    checkboxGroupRanges.addEventListener('change', (e) => {
+      state.groupRanges = e.target.checked;
       saveState();
       refreshUI();
     });
