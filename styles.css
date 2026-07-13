@@ -100,9 +100,8 @@ body {
 .logo-text {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #a5b4fc, #fda4af);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .subtitle-text {
@@ -403,7 +402,6 @@ input[type="color"]::-webkit-color-swatch {
   box-shadow: var(--sheet-shadow);
   color: #334155;
   padding: 60px;
-  transition: width 0.3s, height 0.3s;
   overflow: hidden;
 }
 
