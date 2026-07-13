@@ -453,6 +453,15 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     grid = section.children[1];
     item = grid.children[0];
     assert.ok(item.classList.contains('label-above'));
+
+    // When below
+    state.labelPosition = 'below';
+    renderPrintSheet(() => {});
+    content = elements['sheet-content'];
+    section = content.children[0];
+    grid = section.children[1];
+    item = grid.children[0];
+    assert.ok(item.classList.contains('label-below'));
   });
 
   await t.test('should hook up events and handle title edit in app.js', async () => {

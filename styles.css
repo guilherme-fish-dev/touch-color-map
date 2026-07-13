@@ -683,4 +683,21 @@ input[type="color"]::-webkit-color-swatch {
   display: block;
 }
 
+/* ==========================================================================
+   Label Position: Below layout
+   ========================================================================== */
+.symbol-item.label-below .symbol-shape {
+  flex-direction: column;
+}
+
+.symbol-item.label-below .symbol-label {
+  position: static;
+  margin-top: 6px;
+  padding-top: 2px;
+  border-top: 1px solid currentColor;
+  width: 100%;
+  text-align: center;
+  display: block;
+}
+
 

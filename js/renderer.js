@@ -150,6 +150,8 @@ export function renderPrintSheet(onToggleItem) {
       item.className = 'symbol-item';
       if (state.labelPosition === 'above') {
         item.classList.add('label-above');
+      } else if (state.labelPosition === 'below') {
+        item.classList.add('label-below');
       }
       item.title = `Click to exclude ${escapeHTML(label)}`;
 
