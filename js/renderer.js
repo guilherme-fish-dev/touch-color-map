@@ -1,4 +1,4 @@
-import { toggleExclusion, removeRange, getEffectiveItems, getEffectiveLabels, naturalCompare, state } from './state.js';
+import { toggleExclusion, removeRange, getEffectiveItems, getEffectiveLabels, naturalCompare, state, getProfiles, deleteProfile, loadProfile } from './state.js';
 
 function escapeHTML(str) {
   return String(str || '').replace(/[&<>"']/g, m => ({
@@ -287,5 +287,58 @@ export function renderExclusions(onRestore) {
       onRestore();
     });
     list.appendChild(tag);
+  });
+}
+
+export function renderProfiles(onLoad, onDelete) {
+  const list = document.getElementById('saved-profiles-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const profiles = getProfiles();
+  if (profiles.length === 0) {
+    list.innerHTML = '<p class="subtitle-text" style="text-align: center; padding: 12px 0; width: 100%;">No saved profiles</p>';
+    return;
+  }
+
+  profiles.forEach(profile => {
+    const row = document.createElement('div');
+    row.className = 'profile-row';
+    
+    const dateStr = new Date(profile.timestamp).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    row.innerHTML = `
+      <div class="profile-info">
+        <span class="profile-name" title="${escapeHTML(profile.name)}">${escapeHTML(profile.name)}</span>
+        <span class="profile-date">${dateStr}</span>
+      </div>
+      <div class="profile-actions">
+        <button class="btn-load-profile" type="button">Load</button>
+        <button class="btn-delete-profile" type="button" title="Delete Profile">&times;</button>
+      </div>
+    `;
+
+    row.querySelector('.btn-load-profile').addEventListener('click', () => {
+      try {
+        loadProfile(profile.id);
+        onLoad();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    row.querySelector('.btn-delete-profile').addEventListener('click', () => {
+      if (confirm(`Are you sure you want to delete profile "${profile.name}"?`)) {
+        deleteProfile(profile.id);
+        onDelete();
+      }
+    });
+
+    list.appendChild(row);
   });
 }

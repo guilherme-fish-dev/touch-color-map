@@ -532,4 +532,31 @@ test('Renderer & Event Logic Integration Tests', async (t) => {
     assert.deepStrictEqual(state.excludedItems.sort(), ['B2', 'B4']);
     assert.strictEqual(inputBulk.value, ''); // should reset
   });
+
+  await t.test('should handle profile save, load, delete and json actions', async () => {
+    elements = {};
+    resetState();
+    globalThis.document.listeners = {};
+    window.localStorage.clear();
+
+    await import('../app.js?t=' + Date.now() + '_profile_events');
+    const handler = globalThis.document.listeners['DOMContentLoaded'];
+    handler();
+
+    const inputName = elements['input-profile-name'];
+    const btnSave = elements['btn-save-profile'];
+    assert.ok(inputName);
+    assert.ok(btnSave);
+
+    // Save profile event
+    inputName.value = 'My Swatch';
+    const clickSave = btnSave.listeners['click'];
+    assert.ok(clickSave);
+    clickSave();
+
+    // Verify localStorage has profiles
+    const profiles = JSON.parse(window.localStorage.getItem('touch_color_map_profiles') || '[]');
+    assert.strictEqual(profiles.length, 1);
+    assert.strictEqual(profiles[0].name, 'My Swatch');
+  });
 });

@@ -1,5 +1,5 @@
-import { state, addRange, loadState, saveState, bulkExclude, bulkRestore } from './js/state.js';
-import { renderColorPresets, renderActiveRanges, renderPrintSheet, renderExclusions } from './js/renderer.js';
+import { state, addRange, loadState, saveState, bulkExclude, bulkRestore, getProfiles, saveProfile, deleteProfile, loadProfile, exportToJSON, importFromJSON } from './js/state.js';
+import { renderColorPresets, renderActiveRanges, renderPrintSheet, renderExclusions, renderProfiles } from './js/renderer.js';
 
 let selectedColor = '#6366f1';
 
@@ -7,6 +7,7 @@ function refreshUI() {
   renderActiveRanges(refreshUI);
   renderPrintSheet(refreshUI);
   renderExclusions(refreshUI);
+  renderProfiles(refreshUI, refreshUI);
   
   const scaleVal = document.getElementById('scale-val');
   if (scaleVal) {
@@ -334,6 +335,74 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnPrint) {
     btnPrint.addEventListener('click', () => {
       window.print();
+    });
+  }
+
+  // Profile Save
+  const btnSaveProfile = document.getElementById('btn-save-profile');
+  const inputProfileName = document.getElementById('input-profile-name');
+  if (btnSaveProfile && inputProfileName) {
+    btnSaveProfile.addEventListener('click', () => {
+      const name = inputProfileName.value.trim();
+      if (!name) {
+        alert('Please enter a profile name.');
+        return;
+      }
+      try {
+        saveProfile(name);
+        inputProfileName.value = '';
+        refreshUI();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  }
+
+  // Export JSON
+  const btnExportJSON = document.getElementById('btn-export-json');
+  if (btnExportJSON) {
+    btnExportJSON.addEventListener('click', () => {
+      try {
+        const jsonStr = exportToJSON();
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const fileName = (state.title || 'touch-color-map').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        a.href = url;
+        a.download = `${fileName || 'color-map-config'}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('Failed to export configuration: ' + err.message);
+      }
+    });
+  }
+
+  // Import JSON Trigger & File Input handling
+  const btnImportTrigger = document.getElementById('btn-import-trigger');
+  const inputImportFile = document.getElementById('input-import-file');
+  if (btnImportTrigger && inputImportFile) {
+    btnImportTrigger.addEventListener('click', () => {
+      inputImportFile.click();
+    });
+
+    inputImportFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          importFromJSON(event.target.result);
+          inputImportFile.value = '';
+          refreshUI();
+        } catch (err) {
+          alert('Failed to import configuration: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
     });
   }
 
