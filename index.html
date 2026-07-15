@@ -132,6 +132,29 @@
         </div>
       </section>
 
+      <!-- Profiles & Backup Panel -->
+      <section class="profiles-section settings-section">
+        <h2>Profiles & Backup</h2>
+        
+        <div class="form-group">
+          <label for="input-profile-name">Save Current Sheet</label>
+          <div class="profile-input-group" style="display: flex; gap: 8px;">
+            <input type="text" id="input-profile-name" placeholder="e.g. Copic Cool Grays" style="flex: 1;">
+            <button id="btn-save-profile" class="btn btn-primary btn-small" type="button" style="padding: 8px 12px;">Save</button>
+          </div>
+        </div>
+
+        <div class="saved-profiles-list" id="saved-profiles-list">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="backup-actions-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-sidebar); display: flex; gap: 8px;">
+          <button id="btn-export-json" class="btn btn-secondary" style="flex: 1; font-size: 0.85rem; padding: 8px 10px;">Export JSON</button>
+          <button id="btn-import-trigger" class="btn btn-secondary" style="flex: 1; font-size: 0.85rem; padding: 8px 10px;">Import JSON</button>
+          <input type="file" id="input-import-file" accept=".json" style="display: none;">
+        </div>
+      </section>
+
       <!-- Page Info Panel -->
       <section class="settings-section">
         <h2>Page Info</h2>
