@@ -23,7 +23,13 @@ import {
   loadState,
   bulkExclude,
   bulkRestore,
-  parseBulkExpression
+  parseBulkExpression,
+  getProfiles,
+  saveProfile,
+  loadProfile,
+  deleteProfile,
+  exportToJSON,
+  importFromJSON
 } from '../js/state.js';
 
 test('State Operations Test Suite', async (t) => {
@@ -266,5 +272,52 @@ test('State Operations Test Suite', async (t) => {
     
     unsorted.sort(naturalCompare);
     assert.deepStrictEqual(unsorted, expected);
+  });
+
+  await t.test('Profile Management and JSON Backup', () => {
+    resetState();
+    window.localStorage.clear();
+    
+    // Add some test active state
+    addRange({ prefix: 'T', start: 1, end: 5 });
+    state.title = 'Test Title';
+    
+    // Save Profile
+    const profileId = saveProfile('Test Profile');
+    assert.ok(profileId);
+    
+    const profiles = getProfiles();
+    assert.strictEqual(profiles.length, 1);
+    assert.strictEqual(profiles[0].name, 'Test Profile');
+    assert.strictEqual(profiles[0].data.title, 'Test Title');
+    
+    // Reset active state
+    resetState();
+    assert.strictEqual(state.title, '');
+    assert.strictEqual(state.ranges.length, 0);
+    
+    // Load Profile
+    loadProfile(profileId);
+    assert.strictEqual(state.title, 'Test Title');
+    assert.strictEqual(state.ranges.length, 1);
+    assert.strictEqual(state.ranges[0].prefix, 'T');
+    
+    // JSON Export
+    const jsonStr = exportToJSON();
+    assert.ok(jsonStr.includes('"title": "Test Title"'));
+    
+    // Reset active state
+    resetState();
+    
+    // JSON Import
+    importFromJSON(jsonStr);
+    assert.strictEqual(state.title, 'Test Title');
+    assert.strictEqual(state.ranges.length, 1);
+    assert.strictEqual(state.ranges[0].prefix, 'T');
+    
+    // Delete Profile
+    deleteProfile(profileId);
+    const postDeleteProfiles = getProfiles();
+    assert.strictEqual(postDeleteProfiles.length, 0);
   });
 });

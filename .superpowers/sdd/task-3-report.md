@@ -43,3 +43,21 @@
 * Verify DOM tree elements match exactly between integration test setups and browser layout. All elements are successfully resolved.
 * Ensured range limit tests align with the boundary update (tested at `1002` items range size to ensure rejection).
 * Refined input tracking fields to keep focus when editing by preventing text value overrides when typing.
+
+## Post-Review Fixes (2026-07-12)
+
+We resolved the issues identified during the task review:
+
+1. **Synchronized Mock DOM Element classList & className**:
+   - Re-architected the mock DOM element in `tests/integration.test.js` into a unified `MockDOMElement` class.
+   - Kept `className` and `classList` fully in sync so modifications to one affect the other automatically.
+   - Cleared child nodes in `MockDOMElement` when `.innerHTML = ''` is assigned, resolving a mock rendering accumulation bug.
+   - Removed the duplicate `className` assignments in `js/renderer.js` for dynamic grids and labels, keeping only standard `classList.add()` calls.
+   - Updated integration test assertions to use `classList.contains()` instead of checking `className` directly.
+
+2. **Negative Range Validation Handling**:
+   - Wrapped `addRange(...)` in a `try...catch` block inside the range form submission listener of `app.js`.
+   - Populated validation failure warnings dynamically to users using `alert(err.message)`, covering negative range start limits and other input validations.
+
+3. **Safer Regex Fallback**:
+   - Adjusted `const prefix = prefix2 || prefix1 || '';` fallback pattern in `js/state.js` to handle empty strings or undefined prefixes safely and cleanly.
